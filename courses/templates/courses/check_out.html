@@ -1,0 +1,124 @@
+{% extends 'courses/base.html' %}
+{% load course_custom_tags %}
+
+{% block title %}
+checkout
+{% endblock %}
+
+{% block content %}
+<style>
+    .display-5 {
+        font-size: 35px;
+    }
+</style>
+<div class="container">
+    <br>
+    <br>
+    <div class="row ">
+        <div class=" col mr-auto">
+            <div class="card ml-auto" style="width: 18rem;">
+                <img src="{{course.thumbnail.url}}" class="card-img-top" alt="...">
+                <div class="card-body">
+                    <h5 class="card-title">{{course.name}}</h5>
+
+                    <p class="card-text m-0 p-0">
+                        Save {{course.discount}}%
+                        <br>
+                        <span class="price">
+                            <del>--{{course.price|rupee}}</del>
+                            &nbsp;
+                            <span>{% calc_sellprice course.price course.discount as value %} {{value|rupee}}</span>
+                        </span>
+
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div>
+                <p class="display-5">
+                    {{course.name}}
+                </p>
+                <hr>
+                {% if coupon %}
+                <p class="alert alert-light border">
+                    Coupon code applied.
+                    You have got {{coupon.discount}}% Discount
+                </p>
+                <br>
+
+                <p class="display-5">
+                    Payable Amount: <b>{% calc_sellprice course.price coupon.discount as value %} {{value|rupee}}</b>
+                </p>
+                <a class="btn btn-light border" href="?action=create_payment&couponcode={{coupon.code}}">Continue to payment</a>
+
+                {% else %}
+                <p class="display-5">
+                    Payable Amount: <b>{% calc_sellprice course.price course.discount as value %} {{value|rupee}}</b>
+                </p>
+                <a class="btn btn-light border" href="?action=create_payment">Continue to payment</a>
+                {% endif %}
+
+
+            </div>
+            <hr>
+            <div class="border p-4 rounded border-success">
+                {% if coupon_code_message %}
+                <div class="alert alert-info">
+                    {{coupon_code_message}}
+                </div>
+                {% endif %}
+                <p>
+                    Coupon Code :
+                </p>
+                <form action="" method="get">
+                    <div class="col lg-5 form-group">
+                        <input type="text" name="couponcode" class="form-control" id="">
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <input type="submit" value="apply" class="btn btn-primary">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% if order is not None %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    var options = {
+        "key": "rzp_test_OREFE2n9Jw2YFn", // Enter the Key ID generated from the Dashboard
+        "name": "{{course.name}}",
+        "description": "Payment for {{course.name}}",
+        "image": "https://example.com/your_logo",
+        "order_id": "{{order.id}}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+        "callback_url": "http://localhost:8000/verify_payment",
+        "prefill": {
+            "name": "{{user.first_name}}",
+            "email": "gaurav.kumar@example.com",
+            "contact": "9999999999"
+        },
+        "notes": {
+            "address": "Razorpay Corporate Office"
+        },
+        "theme": {
+            "color": "#3399cc"
+        }
+    };
+    var rzp1 = new Razorpay(options);
+    rzp1.open()
+</script>
+
+{% endif %}
+
+{% if error is not None %}
+<script>
+    window.onload = () => {
+        alert("{{error}}")
+    }
+</script>
+{% endif %}
+
+{% endblock %}
